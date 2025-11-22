@@ -50,7 +50,7 @@ export function validateEnv() {
     Object.values(env);
     console.log('✓ Environment variables validated successfully');
   } catch (error) {
-    console.error('✗ Environment validation failed:', error);
+    console.error('✗ Environment validation failed:', (error as Error).message);
     process.exit(1);
   }
 }

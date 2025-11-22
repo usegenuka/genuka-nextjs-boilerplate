@@ -1,8 +1,3 @@
-/**
- * Genuka Webhook Route
- * Handles webhook events from Genuka
- */
-
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {

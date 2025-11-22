@@ -158,13 +158,10 @@ const company = await companyService.findByAccessToken('token');
 ### Using the Genuka SDK
 
 ```typescript
-import { initializeGenuka, getCompanyInfo } from '@/lib/genuka';
+import { initializeGenuka } from '@/lib/genuka';
 
 // Initialize SDK
 const genuka = await initializeGenuka('company_id');
-
-// Get company info
-const companyInfo = await getCompanyInfo('company_id');
 ```
 
 ## Webhooks

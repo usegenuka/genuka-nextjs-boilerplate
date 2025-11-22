@@ -1,8 +1,3 @@
-/**
- * Genuka SDK utilities and helpers
- * Provides reusable functions for interacting with the Genuka API
- */
-
 import Genuka from 'genuka-api';
 import { env } from '@/config/env';
 
@@ -13,9 +8,6 @@ export async function initializeGenuka(companyId: string) {
   return await Genuka.initialize({ id: companyId });
 }
 
-/**
- * Exchange OAuth authorization code for access token
- */
 export async function exchangeCodeForToken(code: string) {
   const tokenResponse = await fetch(`${env.genuka.url}/oauth/token`, {
     method: 'POST',
@@ -40,9 +32,6 @@ export async function exchangeCodeForToken(code: string) {
   return data.access_token as string;
 }
 
-/**
- * Retrieve company information from Genuka
- */
 export async function getCompanyInfo(companyId: string) {
   const genuka = await initializeGenuka(companyId);
   return await genuka.company.retrieve();
