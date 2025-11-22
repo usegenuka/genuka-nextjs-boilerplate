@@ -1,9 +1,6 @@
 import Genuka from 'genuka-api';
 import { env } from '@/config/env';
 
-/**
- * Initialize Genuka SDK with company ID
- */
 export async function initializeGenuka(companyId: string) {
   return await Genuka.initialize({ id: companyId });
 }

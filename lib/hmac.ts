@@ -8,10 +8,8 @@ export const generateHmac = async (
     timestamp: string;
   }
 ): Promise<string> => {
-  // Sort parameters alphabetically by key (like PHP's ksort)
   const sortedKeys = Object.keys(params).sort();
 
-  // Build query string (like PHP's http_build_query)
   const queryString = sortedKeys
     .map(key => `${encodeURIComponent(key)}=${encodeURIComponent(params[key as keyof typeof params])}`)
     .join('&');
