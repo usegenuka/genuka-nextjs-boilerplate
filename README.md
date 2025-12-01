@@ -222,66 +222,118 @@ const company = await requireAuth();
 await destroySession();
 ```
 
-## Client Usage (Frontend Integration)
+## Client Usage (React Components)
 
-This API uses HTTP-only cookies for session management. Here's how to integrate:
+This boilerplate includes a built-in `AuthProvider` and `useAuthStore` hook for managing authentication in React components.
 
-### JavaScript/TypeScript Client Example
+### AuthProvider Setup
 
-```typescript
-const API_URL = 'http://localhost:3000';
+The `AuthProvider` is already configured in `app/layout.tsx`:
 
-// Check if authenticated
-async function checkAuth(): Promise<boolean> {
-  const res = await fetch(`${API_URL}/api/auth/check`, {
-    credentials: 'include', // Important: send cookies
-  });
-  const data = await res.json();
-  return data.authenticated;
+```tsx
+import { AuthProvider } from "@/stores";
+import { getAuthenticatedCompany } from "@/lib/auth";
+
+export default async function RootLayout({ children }) {
+  const company = await getAuthenticatedCompany();
+
+  return (
+    <html lang="en">
+      <body>
+        <AuthProvider company={company}>
+          {children}
+        </AuthProvider>
+      </body>
+    </html>
+  );
 }
+```
 
-// Get current company info
-async function getMe() {
-  const res = await fetch(`${API_URL}/api/auth/me`, {
-    credentials: 'include',
-  });
+### Using useAuthStore Hook
 
-  if (res.status === 401) {
-    // Session expired, try to refresh
-    return await refreshSession();
+```tsx
+"use client";
+
+import { useAuthStore } from "@/stores";
+
+export default function MyComponent() {
+  const {
+    company,        // Current company data (or null)
+    isAuthenticated, // Boolean: is user logged in?
+    isLoading,      // Boolean: is an auth operation in progress?
+    error,          // Error message (or null)
+    refresh,        // Function: refresh the session
+    logout,         // Function: logout the user
+    checkAuth,      // Function: check if session is valid
+  } = useAuthStore();
+
+  const handleRefresh = async () => {
+    const success = await refresh();
+    if (!success) {
+      // Refresh failed, user needs to reinstall app
+      console.log("Please reinstall the app");
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    // User is now logged out
+  };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
   }
 
-  return res.json();
-}
-
-// Refresh expired session
-async function refreshSession() {
-  const res = await fetch(`${API_URL}/api/auth/refresh`, {
-    method: 'POST',
-    credentials: 'include',
-  });
-
-  if (!res.ok) {
-    throw new Error('Session expired. Please reinstall the app.');
+  if (!isAuthenticated) {
+    return <div>Please install the app from Genuka</div>;
   }
 
-  return res.json();
+  return (
+    <div>
+      <h1>Welcome, {company?.name}</h1>
+      <button onClick={handleRefresh}>Refresh Session</button>
+      <button onClick={handleLogout}>Logout</button>
+      {error && <p className="error">{error}</p>}
+    </div>
+  );
 }
+```
 
-// Logout
-async function logout() {
-  await fetch(`${API_URL}/api/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-  });
+### Handling 401 Errors
+
+When making API calls, handle 401 errors by calling `refresh()`:
+
+```tsx
+"use client";
+
+import { useAuthStore } from "@/stores";
+
+export default function DataComponent() {
+  const { refresh } = useAuthStore();
+
+  const fetchData = async () => {
+    let res = await fetch("/api/my-endpoint", { credentials: "include" });
+
+    // If 401, try to refresh and retry
+    if (res.status === 401) {
+      const refreshed = await refresh();
+      if (refreshed) {
+        res = await fetch("/api/my-endpoint", { credentials: "include" });
+      }
+    }
+
+    return res.json();
+  };
+
+  // ...
 }
 ```
 
 ### Important Notes
 
 1. **Always use `credentials: 'include'`** - Required to send/receive HTTP-only cookies
-2. **CORS Configuration** - Ensure your API allows credentials from your frontend origin
-3. **Handle 401 errors** - Always try to refresh before asking user to reinstall
+2. **Handle 401 errors** - Always try to refresh before asking user to reinstall
+3. **Server Components** - Use `requireAuth()` or `getAuthenticatedCompany()` from `@/lib/auth` for server-side auth
 
 ### Accessing Company Data
 
