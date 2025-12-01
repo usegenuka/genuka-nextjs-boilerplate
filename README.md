@@ -342,6 +342,8 @@ model Company {
   logoUrl           String?
   authorizationCode String?
   accessToken       String?
+  refreshToken      String?    // OAuth refresh token for session renewal
+  tokenExpiresAt    DateTime?  // Access token expiration date
   phone             String?
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
