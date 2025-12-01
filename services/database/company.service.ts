@@ -9,7 +9,7 @@ export class CompanyDBService {
     });
   }
 
-  
+
   async upsertCompany(data: CompanyCreate) {
     return prisma.company.upsert({
       where: { id: data.id },
@@ -27,6 +27,13 @@ export class CompanyDBService {
   async findByHandle(handle: string) {
     return prisma.company.findUnique({
       where: { handle },
+    });
+  }
+
+  async updateById(id: string, data: Partial<CompanyCreate>) {
+    return prisma.company.update({
+      where: { id },
+      data,
     });
   }
 }

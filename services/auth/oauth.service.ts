@@ -36,9 +36,14 @@ export class OAuthService {
       throw new Error('Request expired');
     }
 
-    const accessToken = await exchangeCodeForToken(params.code);
+    const tokenResponse = await exchangeCodeForToken(params.code);
 
     const companyInfo = await getCompanyInfo(params.companyId);
+
+    // Calculate token expiration date
+    const tokenExpiresAt = new Date(
+      Date.now() + tokenResponse.expires_in_minutes * 60 * 1000
+    );
 
     const companyData: CompanyCreate = {
       id: params.companyId,
@@ -46,7 +51,9 @@ export class OAuthService {
       name: companyInfo.name,
       description: companyInfo.description || null,
       authorizationCode: params.code || null,
-      accessToken: accessToken || null,
+      accessToken: tokenResponse.access_token || null,
+      refreshToken: tokenResponse.refresh_token || null,
+      tokenExpiresAt: tokenExpiresAt,
       logoUrl: companyInfo.logoUrl || null,
       phone: companyInfo.metadata?.contact || null,
     };

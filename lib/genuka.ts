@@ -1,11 +1,18 @@
 import Genuka from 'genuka-api';
 import { env } from '@/config/env';
 
+export interface TokenResponse {
+  access_token: string;
+  refresh_token: string;
+  token_type: string;
+  expires_in_minutes: number;
+}
+
 export async function initializeGenuka(companyId: string) {
   return await Genuka.initialize({ id: companyId });
 }
 
-export async function exchangeCodeForToken(code: string) {
+export async function exchangeCodeForToken(code: string): Promise<TokenResponse> {
   const tokenResponse = await fetch(`${env.genuka.url}/oauth/token`, {
     method: 'POST',
     headers: {
@@ -25,8 +32,28 @@ export async function exchangeCodeForToken(code: string) {
     throw new Error(`Token exchange failed: ${tokenResponse.status} ${errorText}`);
   }
 
-  const data = await tokenResponse.json();
-  return data.access_token as string;
+  return (await tokenResponse.json()) as TokenResponse;
+}
+
+export async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
+  const response = await fetch(`${env.genuka.url}/oauth/refresh`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      refresh_token: refreshToken,
+      client_id: env.genuka.clientId,
+      client_secret: env.genuka.clientSecret,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Token refresh failed: ${response.status} ${errorText}`);
+  }
+
+  return (await response.json()) as TokenResponse;
 }
 
 export async function getCompanyInfo(companyId: string) {

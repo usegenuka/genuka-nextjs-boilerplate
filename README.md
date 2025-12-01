@@ -5,6 +5,8 @@ A professional Next.js boilerplate for quickly building Genuka applications with
 ## Features
 
 - ✅ **Genuka OAuth** - Complete authentication with token management
+- ✅ **JWT Session Management** - Secure session handling with jose library
+- ✅ **Double Cookie Security** - Session + refresh cookies for secure token refresh
 - ✅ **Database** - Prisma ORM with MariaDB/MySQL
 - ✅ **Modular Architecture** - Services, utilities, and centralized configuration
 - ✅ **TypeScript** - 100% type-safe
@@ -137,9 +139,149 @@ bun run start            # Start in production
 
 1. User clicks "Install App" in Genuka
 2. Genuka redirects to `/api/auth/callback` with an authorization code
-3. The app exchanges the code for an access token
-4. Company information is retrieved and stored in the database
-5. Redirect to dashboard
+3. The app validates HMAC signature and timestamp
+4. The app exchanges the code for tokens (`access_token` + `refresh_token`)
+5. Company information is retrieved and stored in the database
+6. **JWT session is created and stored in HTTP-only cookies**
+7. Redirect to dashboard
+
+## API Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/auth/callback` | No | OAuth callback handler |
+| POST | `/api/auth/webhook` | No | Webhook event handler |
+| GET | `/api/auth/check` | No | Check if authenticated |
+| POST | `/api/auth/refresh` | No | Refresh expired session |
+| GET | `/api/auth/me` | Yes | Get current company info |
+| POST | `/api/auth/logout` | Yes | Logout and destroy session |
+
+## Authentication
+
+### Double Cookie Security Pattern
+
+This boilerplate uses a secure **double cookie pattern** for session management:
+
+| Cookie | Duration | Purpose |
+|--------|----------|---------|
+| `session` | 7 hours | Access protected routes |
+| `refresh_session` | 30 days | Securely refresh expired sessions |
+
+Both cookies are **HTTP-only** (not accessible via JavaScript) and **signed JWT** (cannot be forged).
+
+### Session Refresh (No Reinstall Required)
+
+When the session expires, the client can securely refresh it:
+
+```
+POST /api/auth/refresh
+// No body required! The refresh_session cookie is sent automatically
+```
+
+**Security Flow:**
+1. Client calls `POST /api/auth/refresh` with no body
+2. Server reads `refresh_session` cookie (HTTP-only, inaccessible to JS)
+3. Server verifies the JWT signature (cannot be forged)
+4. Server extracts `companyId` from the verified JWT
+5. Server retrieves Genuka `refresh_token` from database
+6. Server calls Genuka API with `refresh_token` + `client_secret`
+7. Server updates tokens in database
+8. Server creates new `session` + `refresh_session` cookies
+
+**Why this is secure:**
+- No data sent in request body (nothing to forge)
+- `companyId` comes from a signed JWT cookie (tamper-proof)
+- Cookies are HTTP-only (not accessible via JavaScript/XSS)
+- Genuka `refresh_token` is never exposed to the client
+- Genuka API validates with `client_secret` (server-side only)
+
+### Auth Helper Functions
+
+```typescript
+import {
+  createSession,
+  getAuthenticatedCompany,
+  isAuthenticated,
+  requireAuth,
+  destroySession,
+} from '@/lib/auth';
+
+// Create a session (automatically sets cookies)
+await createSession(companyId);
+
+// Get authenticated company from cookies
+const company = await getAuthenticatedCompany();
+
+// Check if authenticated
+const isAuth = await isAuthenticated();
+
+// Get company or throw error
+const company = await requireAuth();
+
+// Destroy session (logout)
+await destroySession();
+```
+
+## Client Usage (Frontend Integration)
+
+This API uses HTTP-only cookies for session management. Here's how to integrate:
+
+### JavaScript/TypeScript Client Example
+
+```typescript
+const API_URL = 'http://localhost:3000';
+
+// Check if authenticated
+async function checkAuth(): Promise<boolean> {
+  const res = await fetch(`${API_URL}/api/auth/check`, {
+    credentials: 'include', // Important: send cookies
+  });
+  const data = await res.json();
+  return data.authenticated;
+}
+
+// Get current company info
+async function getMe() {
+  const res = await fetch(`${API_URL}/api/auth/me`, {
+    credentials: 'include',
+  });
+
+  if (res.status === 401) {
+    // Session expired, try to refresh
+    return await refreshSession();
+  }
+
+  return res.json();
+}
+
+// Refresh expired session
+async function refreshSession() {
+  const res = await fetch(`${API_URL}/api/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+
+  if (!res.ok) {
+    throw new Error('Session expired. Please reinstall the app.');
+  }
+
+  return res.json();
+}
+
+// Logout
+async function logout() {
+  await fetch(`${API_URL}/api/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+  });
+}
+```
+
+### Important Notes
+
+1. **Always use `credentials: 'include'`** - Required to send/receive HTTP-only cookies
+2. **CORS Configuration** - Ensure your API allows credentials from your frontend origin
+3. **Handle 401 errors** - Always try to refresh before asking user to reinstall
 
 ### Accessing Company Data
 

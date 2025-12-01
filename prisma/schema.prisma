@@ -21,6 +21,8 @@ model Company {
   logoUrl           String?
   authorizationCode String?
   accessToken       String?    @db.LongText
+  refreshToken      String?    @db.LongText // OAuth refresh token for session renewal
+  tokenExpiresAt    DateTime? // Access token expiration date
   phone             String? //  business phone
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
