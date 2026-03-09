@@ -8,7 +8,7 @@ const SESSION_COOKIE_NAME = "session";
  */
 const publicRoutes = ["/unauthorized"];
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Skip authentication for public routes
