@@ -1,6 +1,6 @@
 "use client";
 
-import { Company } from "@/app/generated/prisma/client";
+import { Company } from "@/types/company";
 import {
   createContext,
   useContext,

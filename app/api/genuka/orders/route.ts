@@ -1,0 +1,22 @@
+import { requireAuth } from "@/lib/auth";
+import { initializeAuthenticatedGenuka } from "@/lib/genuka";
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(request: NextRequest) {
+  try {
+    const company = await requireAuth();
+    const genuka = await initializeAuthenticatedGenuka(company.id);
+
+    const searchParams = request.nextUrl.searchParams;
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "15");
+
+    const orders = await genuka.orders.list({ page, limit });
+
+    return NextResponse.json(orders);
+  } catch (error) {
+    console.error("Orders fetch error:", error);
+    const status = error instanceof Error && error.message === "Unauthorized" ? 401 : 500;
+    return NextResponse.json({ error: "Failed to fetch orders" }, { status });
+  }
+}
