@@ -3,8 +3,8 @@
  * Centralized configuration values used throughout the application
  */
 
-export const APP_NAME = 'Genuka Next.js Boilerplate';
-export const APP_DESCRIPTION = 'A professional Next.js boilerplate for Genuka applications';
+export const APP_NAME = 'MboaTickets';
+export const APP_DESCRIPTION = "Scanner de billets Genuka par QR code, en mode hors-ligne.";
 
 // API Routes
 export const API_ROUTES = {

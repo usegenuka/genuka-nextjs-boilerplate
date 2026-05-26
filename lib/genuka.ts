@@ -10,6 +10,14 @@ export interface TokenResponse {
 }
 
 /**
+ * Base URL of the Genuka Admin API.
+ * The SDK targets `https://api.genuka.com/<version>/admin` by default, so raw
+ * admin fetches must hit the same host to stay consistent with SDK reads.
+ */
+export const GENUKA_ADMIN_API_BASE =
+  process.env.GENUKA_ADMIN_API_BASE || 'https://api.genuka.com/2023-11/admin';
+
+/**
  * Initialize a basic Genuka SDK instance (no auth token).
  * Use for public API calls only.
  */
@@ -18,11 +26,11 @@ export async function initializeGenuka(companyId: string) {
 }
 
 /**
- * Initialize an authenticated Genuka SDK instance using the company's stored access token.
- * Automatically refreshes expired tokens.
- * Use for admin API calls (products, orders, customers, etc.)
+ * Return the company with a guaranteed-fresh access token, refreshing and
+ * persisting a new token if the stored one has expired.
+ * Shared by the SDK initializer and the raw admin fetch helper.
  */
-export async function initializeAuthenticatedGenuka(companyId: string) {
+export async function getCompanyWithValidToken(companyId: string) {
   const companyService = new CompanyDBService();
   const company = await companyService.findByCompanyId(companyId);
 
@@ -30,35 +38,84 @@ export async function initializeAuthenticatedGenuka(companyId: string) {
     throw new Error('Company not found or no access token available');
   }
 
-  // Check if token is expired and refresh if needed
-  if (company.tokenExpiresAt && new Date(company.tokenExpiresAt) < new Date()) {
-    if (!company.refreshToken) {
-      throw new Error('Access token expired and no refresh token available');
-    }
+  const isExpired =
+    company.tokenExpiresAt && new Date(company.tokenExpiresAt) < new Date();
 
-    const tokenResponse = await refreshAccessToken(company.refreshToken);
-    const tokenExpiresAt = new Date(
-      Date.now() + tokenResponse.expires_in_minutes * 60 * 1000
-    );
-
-    await companyService.updateById(companyId, {
-      accessToken: tokenResponse.access_token,
-      refreshToken: tokenResponse.refresh_token,
-      tokenExpiresAt,
-    });
-
-    return await Genuka.initialize({
-      id: companyId,
-      token: tokenResponse.access_token,
-      adminMode: true,
-    });
+  if (!isExpired) {
+    return company;
   }
+
+  if (!company.refreshToken) {
+    throw new Error('Access token expired and no refresh token available');
+  }
+
+  const tokenResponse = await refreshAccessToken(company.refreshToken);
+  const tokenExpiresAt = new Date(
+    Date.now() + tokenResponse.expires_in_minutes * 60 * 1000
+  );
+
+  return companyService.updateById(companyId, {
+    accessToken: tokenResponse.access_token,
+    refreshToken: tokenResponse.refresh_token,
+    tokenExpiresAt,
+  });
+}
+
+/**
+ * Initialize an authenticated Genuka SDK instance using the company's stored access token.
+ * Automatically refreshes expired tokens.
+ * Use for admin API calls (products, orders, customers, etc.)
+ */
+export async function initializeAuthenticatedGenuka(companyId: string) {
+  const company = await getCompanyWithValidToken(companyId);
 
   return await Genuka.initialize({
     id: companyId,
-    token: company.accessToken,
+    token: company.accessToken!,
     adminMode: true,
   });
+}
+
+/**
+ * Perform a raw authenticated request against the Genuka Admin API.
+ * Used where the SDK is insufficient (e.g. paginated list with `meta`, or
+ * updating an order — the SDK exposes no `orders.update`).
+ *
+ * @param companyId  Company whose token/scope is used.
+ * @param path       Path relative to the admin base, e.g. `/orders?page=1`.
+ * @param init       Standard fetch init (method, body, ...).
+ */
+export async function genukaAdminFetch<T = unknown>(
+  companyId: string,
+  path: string,
+  init: RequestInit = {}
+): Promise<T> {
+  const company = await getCompanyWithValidToken(companyId);
+
+  const response = await fetch(`${GENUKA_ADMIN_API_BASE}${path}`, {
+    ...init,
+    headers: {
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${company.accessToken}`,
+      'X-Company': companyId,
+      ...init.headers,
+    },
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(
+      `Genuka admin request failed: ${response.status} ${init.method || 'GET'} ${path} ${errorText}`
+    );
+  }
+
+  // 204 / empty body
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return (await response.json()) as T;
 }
 
 export async function exchangeCodeForToken(code: string): Promise<TokenResponse> {
