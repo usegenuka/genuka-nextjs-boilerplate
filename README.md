@@ -12,6 +12,7 @@ A professional Next.js boilerplate for quickly building Genuka applications with
 - ✅ **TypeScript** - 100% type-safe
 - ✅ **Next.js 16** - App Router with Server Components
 - ✅ **Webhooks** - Ready to receive Genuka events
+- ✅ **Genuka design system for AI agents** - Rules and a skill (`.claude/`) with a ready-to-copy component kit, so the app looks like the Genuka dashboard it is embedded in (see `AGENTS.md`). Copied from [usegenuka/design-system](https://github.com/usegenuka/design-system), where it evolves
 
 ## Prerequisites
 
