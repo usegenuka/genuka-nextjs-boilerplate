@@ -1,0 +1,183 @@
+/*
+ * Genuka design tokens for Tailwind CSS v4.
+ * Same values as the Genuka dashboard (its Tailwind config and global stylesheet).
+ *
+ * In app/globals.css:
+ *   @import "tailwindcss";
+ *   @import "tw-animate-css";
+ *   @import "./genuka-theme.css";
+ */
+
+@theme {
+  /* Brand: one accent only, Genuka orange */
+  --color-primary: #fd982e;
+  --color-primary-50: #fff7ed;
+  --color-primary-100: #ffedd5;
+  --color-primary-200: #fed7aa;
+  --color-primary-300: #fdba74;
+  --color-primary-400: #fea94e;
+  --color-primary-500: #fd982e;
+  --color-primary-600: #ea7c0e;
+  --color-primary-700: #c2600a;
+  --color-primary-800: #9a4d0e;
+  --color-primary-900: #7c3f0f;
+  --color-primary-950: #432005;
+
+  /* Semantic colors */
+  --color-success: #10b981;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+
+  /*
+   * The dashboard runs Tailwind v3: its slate, red, green… are v3's hex values. Tailwind v4 ships a brighter
+   * oklch palette (v4 red-500 is about #fb2c36, not #ef4444), so the families Genuka uses are pinned to v3.
+   */
+  --color-slate-50: #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-200: #fecaca;
+  --color-red-300: #fca5a5;
+  --color-red-400: #f87171;
+  --color-red-500: #ef4444;
+  --color-red-600: #dc2626;
+  --color-red-700: #b91c1c;
+  --color-red-800: #991b1b;
+  --color-red-900: #7f1d1d;
+  --color-red-950: #450a0a;
+
+  --color-green-50: #f0fdf4;
+  --color-green-100: #dcfce7;
+  --color-green-200: #bbf7d0;
+  --color-green-300: #86efac;
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  --color-green-600: #16a34a;
+  --color-green-700: #15803d;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+  --color-green-950: #052e16;
+
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+  --color-emerald-950: #022c22;
+
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-amber-950: #451a03;
+
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  --color-blue-300: #93c5fd;
+  --color-blue-400: #60a5fa;
+  --color-blue-500: #3b82f6;
+  --color-blue-600: #2563eb;
+  --color-blue-700: #1d4ed8;
+  --color-blue-800: #1e40af;
+  --color-blue-900: #1e3a8a;
+  --color-blue-950: #172554;
+
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  --color-orange-900: #7c2d12;
+  --color-orange-950: #431407;
+
+  /* Tailwind v4 renamed its scales: v4 shadow-sm is v3 shadow, v4 rounded-sm is v3 rounded. Back to v3 values. */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --radius-sm: 0.125rem;
+
+  /*
+   * Not Genuka colors: no purple or pink (the dashboard is moving away from them), and slate is the only grey.
+   * Their classes generate nothing, so a stray `text-gray-600` shows up as unstyled text in review.
+   */
+  --color-purple-*: initial;
+  --color-violet-*: initial;
+  --color-fuchsia-*: initial;
+  --color-pink-*: initial;
+  --color-rose-*: initial;
+  --color-indigo-*: initial;
+  --color-gray-*: initial;
+  --color-zinc-*: initial;
+  --color-neutral-*: initial;
+  --color-stone-*: initial;
+}
+
+@theme inline {
+  /* Bricolage Grotesque carries all the text, as in the dashboard (next/font, see lib/fonts.ts) */
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  /* Tailwind v3 drew a bare `border` or `divide-*` in light grey; v4 uses currentColor. Dashboard recipes rely on v3. */
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-slate-200);
+  }
+
+  html,
+  body {
+    /* The app is drawn inside the dashboard's white working card: white canvas, light mode only */
+    background-color: #fff;
+    color: var(--color-slate-700);
+    color-scheme: light;
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+@utility hide-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Toasts (react-toastify) use Outfit in the dashboard */
+.Toastify__toast-body {
+  font-family: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+}

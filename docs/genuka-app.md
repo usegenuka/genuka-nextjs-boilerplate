@@ -21,6 +21,7 @@ Utiliser ce repo comme point de départ pour:
 - Helpers d’accès Genuka authentifiés côté serveur
 - Endpoints exemples pour `customers`, `orders`, `products`
 - Point d’entrée webhook Genuka
+- Design system du dashboard Genuka pour l’IA : règles (`.claude/rules/genuka-design.md`), skill et kit de composants (`.claude/skills/genuka-design-system/`)
 
 ## 3) Démarrage rapide (5 étapes)
 
@@ -79,7 +80,7 @@ http://localhost:3000/api/auth/callback
 2. **Mettre à jour le schéma Prisma** selon votre domaine métier.
 3. **Créer vos services métier** dans `services/` (lecture/écriture DB + appels externes).
 4. **Ajouter vos routes API** dans `app/api/` en vous appuyant sur `requireAuth()`.
-5. **Construire l’UI** avec `app/` (Server Components), en lisant la société connectée via `getAuthenticatedCompany()`.
+5. **Construire l’UI** avec `app/` (Server Components), en lisant la société connectée via `getAuthenticatedCompany()`. L’app s’affiche dans le dashboard Genuka : installez d’abord le kit de la skill `genuka-design-system` (`.claude/skills/genuka-design-system/kit/README.md`) pour reprendre son design. Pas de sidebar : la navigation passe par une barre d’onglets en haut.
 6. **Brancher les webhooks** pour synchroniser les données entrantes Genuka.
 
 ## 5) Endpoints disponibles dans le boilerplate
